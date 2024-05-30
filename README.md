@@ -3,7 +3,8 @@ List your tools here:
 AWS RDS, ECR, ECS, CircleCi, Postgresql, Docker 
 ```
 
-<img width="1095" alt="Screenshot 2024-05-28 at 10 30 26" src="https://github.com/sukarnozhang/devops_project/assets/78150905/794cf95e-3793-43e8-a9dc-6813475509d3">
+<img width="1111" alt="Screenshot 2024-05-30 at 09 54 41" src="https://github.com/sukarnozhang/devops_project/assets/78150905/ca05a072-3a07-4031-aff0-263a88176e36">
+
 
 ```yml
 # your final config.yml file content here at the end of the project
