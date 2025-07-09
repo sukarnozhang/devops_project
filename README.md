@@ -1,7 +1,6 @@
-# CircleCI configuration file for CI/CD pipeline
-# Version specifies the CircleCI config version being used
-
 ```yml
+CircleCI configuration file for CI/CD pipeline
+
 version: 2.1
 
 # Orbs are reusable packages of CircleCI config to simplify jobs
