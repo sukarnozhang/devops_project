@@ -1,74 +1,69 @@
-```
-List your tools here:
-AWS RDS, ECR, ECS, CircleCi, Postgresql, Docker 
-```
-
-<img width="1111" alt="Screenshot 2024-05-30 at 09 54 41" src="https://github.com/sukarnozhang/devops_project/assets/78150905/ca05a072-3a07-4031-aff0-263a88176e36">
-
-
-```yml
-# your final config.yml file content here at the end of the project
+# CircleCI configuration file for CI/CD pipeline
+# Version specifies the CircleCI config version being used
 version: 2.1
 
+# Orbs are reusable packages of CircleCI config to simplify jobs
 orbs:
-  aws-cli: circleci/aws-cli@4.0
-  aws-ecr: circleci/aws-ecr@9.0
-  aws-ecs: circleci/aws-ecs@0.0.8
-  docker: circleci/docker@2.4.0
-  snyk: snyk/snyk@1.5.0
+  aws-cli: circleci/aws-cli@4.0       # AWS CLI commands support
+  aws-ecr: circleci/aws-ecr@9.0       # AWS ECR  operations
+  aws-ecs: circleci/aws-ecs@0.0.8     # AWS ECS  deployments
+  docker: circleci/docker@2.4.0        # Docker commands support
+  snyk: snyk/snyk@1.5.0               # Snyk security vulnerability scanning
 
 jobs:
   build:
-    description: "build docker"
+    description: "Build Docker image using Maven"
     docker:
-      - image: cimg/openjdk:19.0.1
+      - image: cimg/openjdk:19.0.1     # Docker image with OpenJDK 19 for Java build
     steps:
-      - checkout
+      - checkout                      # Checkout source code from repo to circleci workspace
       - run:
           name: Build
-          command: mvn -B -DskipTests clean package
-      - persist_to_workspace:
+          command: mvn -B -DskipTests clean package  # Build project, skipping tests, there is security scan and mavern unit test
+      - persist_to_workspace:         # Save workspace for subsequent jobs
           root: .
           paths:
             - .
+
   test:
-    description: "test springboot"
+    description: "Run tests for Spring Boot application"
     docker:
       - image: cimg/openjdk:19.0.1
     steps:
       - checkout
       - run:
-          name: Build
-          command: mvn test
+          name: Run Tests
+          command: mvn test             # Execute unit and integration tests
 
   scan:
+    description: "Run security scan on Docker image using Snyk"
     docker:
       - image: cimg/openjdk:19.0.1
     environment:
-      IMAGE_NAME: devops
+      IMAGE_NAME: devops               # Define Docker image name for scanning
     steps:
       - checkout
-      - setup_remote_docker
-      - docker/check
-      - run: docker build -t $IMAGE_NAME .
+      - setup_remote_docker            # Enable Docker daemon for building images
+      - docker/check                  # Verify Docker environment is set
+      - run: docker build -t $IMAGE_NAME .  # Build Docker image locally
       - snyk/scan:
-          docker-image-name: $IMAGE_NAME
+          docker-image-name: $IMAGE_NAME    # Scan Docker image for vulnerabilities
 
 workflows:
   simple_workflow:
     jobs:
-      - build
+      - build                        # Build job runs first
       - test:
           requires:
-            - build
+            - build                 # Test job depends on successful build
       - scan:
           requires:
-            - test 
-      - aws-ecr/build_and_push_image:
+            - test                  # Scan job depends on successful test
+      - aws-ecr/build_and_push_image:  # Push built image to AWS ECR
           account_id: ${AWS_ACCOUNT_ID}
           auth:
             - aws-cli/setup:
-                role_arn: arn:aws:iam::${AWS_ACCOUNT_ID}:role/oidc-ecr
+                role_arn: arn:aws:iam::${AWS_ACCOUNT_ID}:role/oidc-ecr  # IAM role for ECR access
                 role_session_name: mysession@${ORGANIZATION_ID}
           dockerfile: Dockerfile
           repo: devops
@@ -76,16 +71,12 @@ workflows:
           filters:
             branches:
               only:
-                - release
+                - release            # Run only on release branch
           requires:
             - test
-      - aws-ecs/deploy-service-update:
+      - aws-ecs/deploy-service-update:  # Deploy updated image to ECS service
           cluster-name: test
-          family: test   ### name of the task definition (image URL)
-          service-name: test
+          family: test                # ECS task definition family name (usually image URL)
+          service-name: test         # ECS service to update
           requires:
-            - aws-ecr/build_and_push_image
-
-```
-
-END
+            - aws-ecr/build_and_push_image  # Deployment requires image to be pushed
