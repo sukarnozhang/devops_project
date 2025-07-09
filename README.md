@@ -1,5 +1,7 @@
 # CircleCI configuration file for CI/CD pipeline
 # Version specifies the CircleCI config version being used
+
+```yml
 version: 2.1
 
 # Orbs are reusable packages of CircleCI config to simplify jobs
@@ -80,3 +82,4 @@ workflows:
           service-name: test         # ECS service to update
           requires:
             - aws-ecr/build_and_push_image  # Deployment requires image to be pushed
+```
