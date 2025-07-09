@@ -21,10 +21,6 @@ jobs:
       - run:
           name: Build
           command: mvn -B -DskipTests clean package  # Build project, skipping tests, there is security scan and mavern unit test
-      - persist_to_workspace:         # Save workspace for subsequent jobs
-          root: .
-          paths:
-            - .
 
   test:
     description: "Run tests for Spring Boot application"
